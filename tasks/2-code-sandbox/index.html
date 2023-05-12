@@ -1,11 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Golem App</title>
     <script crossorigin src="https://unpkg.com/yajsapi"></script>
-</head>
-<body>
-    [your code here]
-</body>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="w-screen h-screen grid grid-rows-[auto_1fr] gap-3 p-4">
+    <div class="flex flex-row items-center justify-between">
+        <div>Golem Code Sandbox</div>
+    </div>
+    <div class="w-full h-full grid grid-cols-[1fr_auto] gap-2">
+        <div class="border border-2 border-green-50">Editor Space</div>
+        <div class="flex flex-col items-center justify-between">
+            <div class="w-full">Sandbox configure space</div>
+            <div class="w-full">Code output space</div>
+        </div>
+    </div>
+  </body>
 </html>
