@@ -3,11 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <title>Golem App</title>
-    <script
-      crossorigin
-      type="module"
-      src="https://unpkg.com/yajsapi@0.7.0-alpha.0/dist/yajsapi.min.js"
-    ></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script
       type="module"
@@ -26,11 +21,11 @@
           <fluent-select
             title="Select a section"
             class="outline-none min-w-fit"
+            id="runtime"
             onchange="selectRuntime(this.value)"
           >
+            <fluent-option value="shell">Shell</fluent-option>
             <fluent-option value="js">JS</fluent-option>
-            <fluent-option value="cpp">C++</fluent-option>
-            <fluent-option value="go">Go</fluent-option>
           </fluent-select>
         </div>
         <label class="w-full h-full">
@@ -51,9 +46,9 @@
               class="outline-none"
               onchange="selectSandbox(this.value)"
             >
-              <fluent-option value="1">Sandbox 1</fluent-option>
-              <fluent-option value="2">Sandbox 2</fluent-option>
-              <fluent-option value="3">Sandbox 3</fluent-option>
+              <fluent-option value="shell">vanilla</fluent-option>
+              <fluent-option value="node">node:latest</fluent-option>
+              <fluent-option value="python">python:latest</fluent-option>
             </fluent-select>
           </div>
           <fluent-button onclick="run()">Run Code</fluent-button>
@@ -88,30 +83,26 @@
     <script>
 
       // Config variables
-      let runtime;
+      let code, runtime,sandbox;
 
       // Actions
-      const selectSandbox = (e) =>{
+      const selectSandbox = (value) =>{
+        sandbox = value;
       }
       const selectRuntime = (e) =>{
         switch (e) {
-          case 'js':
-            runtime = 'node'
-            break;
-          case 'cpp':
-            runtime = 'gcc'
-            break;
-          case 'go':
-            runtime = 'go'
-            break;
           default:
-            runtime = 'node'
+            runtime = 'shell'
         }
       }
-      const run = () => {
-        console.log(runtime)
-      }
+
+      document.getElementById('code').addEventListener('input',(ev) => {
+        code = ev.target.value;
+      })
       const downloadOutput = () => {}
+      const run = () => {
+        console.table([runtime,code,sandbox])
+      }
 
       // Outputs
       function appendLog(msg, level = 'info') {
@@ -138,18 +129,102 @@
 
     </script>
     <script type="module">
-      import {Allocation, Package, Run, Script} from "https://unpkg.com/yajsapi@0.7.0-alpha.0/dist/yajsapi.min.js";
+      import {
+        Allocation,
+        Package,
+        Run,
+        Script,
+        Accounts,
+        Demand, DemandEventType, Agreement, Activity, Deploy, Start
+      } from "https://unpkg.com/yajsapi@0.7.0-alpha.0/dist/yajsapi.min.js";
 
       // Yagna Engine
       const yagnaOptions = { apiKey: 'YOUR_YAGNA_APP_KEY', basePath: 'http://localhost:7465' };
+
+
+      let vmPackage,
+              account,
+              allocation,
+              demand,
+              proposals = [],
+              offer,
+              agreement,
+              activity;
+
+
+      async function createPackage() {
+        vmPackage = await Package.create({ imageHash: "9a3b5d67b0b27746283cb5f287c13eab1beaa12d92a9f536b747c7ae", logger });
+      }
+
+
+      async function createAllocation() {
+        const accounts = await (await Accounts.create({ yagnaOptions, logger })).list();
+        account = accounts.find((account) => account?.platform === 'erc20-rinkeby-tglm');
+        if (!account) logger.error("There is no available account");
+        allocation = await Allocation.create({ account, yagnaOptions, logger }).catch(logger.error);
+      }
+
+
+      async function createDemand(taskPackage,options) {
+        demand = await Demand.create(taskPackage, [allocation], options).catch(logger.error);
+        demand.addEventListener(DemandEventType, async (event) => {
+          if (event.proposal.isInitial()) {
+            proposals.push(event.proposal);
+            logger.debug(`New proposal has been received (${event.proposal.id.slice(0,10)})`);
+          } else if (event.proposal.isDraft()) {
+            offer = event.proposal;
+            logger.debug(`New offer has been received (${event.proposal.id.slice(0,10)})`);
+          }
+        })
+      }
+
+
+      async function respondProposal() {
+        const proposal = proposals.shift();
+        if (!proposal) logger.error('Ther is no available proposal');
+        await proposal.respond(account.platform).catch(logger.error);
+      }
+
+
+      async function createAgreement() {
+        agreement = await Agreement.create(offer.id, { yagnaOptions }).catch(logger.error);
+      }
+
+      async function confirmAgreement() {
+        await agreement.confirm().catch(logger.error);
+      }
+
+
+      async function createActivity({options}) {
+        const state = await agreement.getState().catch(logger.error)
+        if (state !== 'Approved') return logger.error(`Agreement is not approved. Current state: ${state}`)
+        activity = await Activity.create(agreement.id, options).catch(logger.error);
+        const script = await Script.create([new Deploy(), new Start()]);
+        const exeScript = script.getExeScriptRequest();
+        await activity.execute(exeScript).catch(logger.error);
+      }
+
       async function runSandbox() {
-        const script = await Script.create([new Run("/bin/sh", ["-c", runtime, ])]);
+        const script = await Script.create([new Run("/bin/sh", ["-c", code])]);
         const exeScript = script.getExeScriptRequest();
         const results = await activity.execute(exeScript).catch(logger.error);
         results.on('data', result => appendResults(result));
-        results.on('error', error => appendResults(error));
+        results.on('error', error => appendLog(error));
       }
 
+      async function end() {
+        await activity.stop().catch(logger.error);
+        await agreement.terminate().catch(logger.error);
+        await allocation.release().catch(logger.error);
+        await demand.unsubscribe().catch(logger.error);
+        vmPackage = null;
+        activity = null;
+        agreement = null;
+        allocation = null;
+        demand = null;
+        proposals = [];
+        offer = null;
+      }
     </script>
   </body>
 </html>
