@@ -27,7 +27,6 @@
             onchange="selectRuntime(this.value)"
           >
             <fluent-option value="shell">Shell</fluent-option>
-            <fluent-option value="js">JS</fluent-option>
           </fluent-select>
         </div>
         <label class="w-full h-full">
@@ -87,7 +86,8 @@
       // Config variables
       let code, runtime,sandbox,appkey = '';
 
-      // Unable to pass yagna appkey around thus triggering process
+      // Unable to pass yagna appkey around thus triggering env check on process.env,
+      // this is meant to be a polyfill to that
       // const process = {env: {
       //     YAGNA_APPKEY: appkey
       //   }}
@@ -210,8 +210,21 @@
         await activity.execute(exeScript).catch(logger.error);
       }
 
+      function getCommand() {
+        let command = 'echo No specified command';
+        switch (runtime) {
+          case 'shell':
+            command = code;
+            break
+          case 'js':
+            const file = new File([code],'script.js',{type: 'application/javascript'})
+            command = `node ${file}`
+        }
+        return command;
+      }
+
       async function runSandbox() {
-        const script = await Script.create([new Run("/bin/sh", ["-c", code])]);
+        const script = await Script.create([new Run("/bin/sh", ["-c", getCommand()])]);
         const exeScript = script.getExeScriptRequest();
         const results = await activity.execute(exeScript).catch(logger.error);
         results.on('data', result => appendResults(result));
