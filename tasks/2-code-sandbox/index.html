@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>Golem App</title>
-    <script crossorigin type="module" src="https://unpkg.com/yajsapi@0.7.0-alpha.0/dist/yajsapi.min.js"></script>
+    <script
+      crossorigin
+      type="module"
+      src="https://unpkg.com/yajsapi@0.7.0-alpha.0/dist/yajsapi.min.js"
+    ></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script
       type="module"
@@ -16,33 +20,68 @@
     </div>
     <div class="w-full h-full grid grid-cols-[1fr_minmax(20%,auto)] gap-2">
       <div class="p-1 w-full h-full relative">
-        <div class="absolute right-0 p-2 mx-3 my-2 shadow rounded-lg">
-          <h1 class="text-sm">Code Editor</h1>
+        <div
+          class="absolute right-0 p-2 mx-3 my-2 shadow rounded-lg flex flex-row items-center justify-center gap-2"
+        >
+          <fluent-select
+            title="Select a section"
+            class="outline-none min-w-fit"
+            onchange="selectRuntime(this.value)"
+          >
+            <fluent-option value="js">JS</fluent-option>
+            <fluent-option value="cpp">C++</fluent-option>
+            <fluent-option value="go">Go</fluent-option>
+          </fluent-select>
         </div>
         <label class="w-full h-full">
-          <textarea class="w-full h-full border-2 border-gray-100 focus:outline-gray-200 outline-none rounded-lg"></textarea>
+          <textarea
+            id="code"
+            class="w-full h-full border-2 border-gray-100 focus:outline-gray-200 outline-none rounded-lg"
+          ></textarea>
         </label>
       </div>
       <div class="flex flex-col items-center justify-between p-1">
         <div class="w-full flex flex-col gap-4">
           <div class="w-full flex flex-col">
-          <fluent-label class="text-base mb-1">Choose your Sandbox</fluent-label>
-          <fluent-select title="Select a section" class="outline-none">
-            <fluent-option value="1">Sandbox 1</fluent-option>
-            <fluent-option value="2">Sandbox 2</fluent-option>
-            <fluent-option value="3">Sandbox 3</fluent-option>
-          </fluent-select>
+            <fluent-label class="text-base mb-1"
+              >Choose your Sandbox</fluent-label
+            >
+            <fluent-select
+              title="Select a section"
+              class="outline-none"
+              onchange="selectSandbox(this.value)"
+            >
+              <fluent-option value="1">Sandbox 1</fluent-option>
+              <fluent-option value="2">Sandbox 2</fluent-option>
+              <fluent-option value="3">Sandbox 3</fluent-option>
+            </fluent-select>
           </div>
-          <fluent-button>Run Code</fluent-button>
+          <fluent-button onclick="run()">Run Code</fluent-button>
         </div>
         <div class="w-full p-2">
-          <fluent-accordion-item class="p-2 rounded-lg border-2 border-slate-100">
-            <span slot="heading">Code console</span>
-            <div class="panel">
-              Console content
+          <fluent-accordion-item
+            class="p-1 rounded-lg border-2 border-slate-100 mb-2"
+          >
+            <span slot="heading">Output</span>
+            <div
+              class="panel w-full min-h-[5rem] p-2 border-2 border-slate-100 mb-2 outline-none"
+            >
+              <div id="output"></div>
+            </div>
+            <fluent-button onclick="downloadOutput()"
+              >Download Output</fluent-button
+            >
+          </fluent-accordion-item>
+          <fluent-accordion-item
+            class="p-1 rounded-lg border-2 border-slate-100"
+          >
+            <span slot="heading">Logs</span>
+            <div
+              class="panel w-full min-h-[5rem] p-2 border-2 border-slate-100 mb-2 outline-none"
+            >
+              <div id="logs"></div>
             </div>
           </fluent-accordion-item>
-          <fluent-button>Download Output</fluent-button>
         </div>
       </div>
     </div>
