@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Sample extended from https://docs.golem.network/creators/javascript/mid-level/examples/web/#allocation  -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -12,6 +13,7 @@
   <body class="w-screen h-screen grid grid-rows-[auto_1fr] gap-3 p-4">
     <div class="flex flex-row items-center justify-between">
       <div>Golem Code Sandbox</div>
+      <fluent-text-field appearance="outline" class="outline-none" placeholder="YAGNA_APP_KEY" id="appid" ></fluent-text-field>
     </div>
     <div class="w-full h-full grid grid-cols-[1fr_minmax(20%,auto)] gap-2">
       <div class="p-1 w-full h-full relative">
@@ -51,7 +53,7 @@
               <fluent-option value="python">python:latest</fluent-option>
             </fluent-select>
           </div>
-          <fluent-button onclick="run()">Run Code</fluent-button>
+          <fluent-button id="run">Run Code</fluent-button>
         </div>
         <div class="w-full p-2">
           <fluent-accordion-item
@@ -83,7 +85,12 @@
     <script>
 
       // Config variables
-      let code, runtime,sandbox;
+      let code, runtime,sandbox,appkey = '';
+
+      // Unable to pass yagna appkey around thus triggering process
+      // const process = {env: {
+      //     YAGNA_APPKEY: appkey
+      //   }}
 
       // Actions
       const selectSandbox = (value) =>{
@@ -96,13 +103,12 @@
         }
       }
 
+      document.getElementById('appid').addEventListener('input',(ev) => {
+        appkey = ev.target.value
+      })
       document.getElementById('code').addEventListener('input',(ev) => {
         code = ev.target.value;
       })
-      const downloadOutput = () => {}
-      const run = () => {
-        console.table([runtime,code,sandbox])
-      }
 
       // Outputs
       function appendLog(msg, level = 'info') {
@@ -139,7 +145,7 @@
       } from "https://unpkg.com/yajsapi@0.7.0-alpha.0/dist/yajsapi.min.js";
 
       // Yagna Engine
-      const yagnaOptions = { apiKey: 'YOUR_YAGNA_APP_KEY', basePath: 'http://localhost:7465' };
+      const yagnaOptions = { apiKey: appkey, basePath: 'http://localhost:7465' };
 
 
       let vmPackage,
@@ -158,15 +164,15 @@
 
 
       async function createAllocation() {
-        const accounts = await (await Accounts.create({ yagnaOptions, logger })).list();
+        const accounts = await (await Accounts.create({ yagnaOptions:yagnaOptions, logger })).list();
         account = accounts.find((account) => account?.platform === 'erc20-rinkeby-tglm');
         if (!account) logger.error("There is no available account");
         allocation = await Allocation.create({ account, yagnaOptions, logger }).catch(logger.error);
       }
 
 
-      async function createDemand(taskPackage,options) {
-        demand = await Demand.create(taskPackage, [allocation], options).catch(logger.error);
+      async function createDemand() {
+        demand = await Demand.create(vmPackage, [allocation]).catch(logger.error);
         demand.addEventListener(DemandEventType, async (event) => {
           if (event.proposal.isInitial()) {
             proposals.push(event.proposal);
@@ -195,10 +201,10 @@
       }
 
 
-      async function createActivity({options}) {
+      async function createActivity() {
         const state = await agreement.getState().catch(logger.error)
         if (state !== 'Approved') return logger.error(`Agreement is not approved. Current state: ${state}`)
-        activity = await Activity.create(agreement.id, options).catch(logger.error);
+        activity = await Activity.create(agreement.id).catch(logger.error);
         const script = await Script.create([new Deploy(), new Start()]);
         const exeScript = script.getExeScriptRequest();
         await activity.execute(exeScript).catch(logger.error);
@@ -224,6 +230,13 @@
         demand = null;
         proposals = [];
         offer = null;
+      }
+
+      document.getElementById('run').addEventListener('click',() => run())
+
+      const downloadOutput = () => {}
+      const run = () => {
+        createPackage().then(() => createAllocation()).then(() => createDemand()).then(() => respondProposal()).then(() => createAgreement()).then(() => confirmAgreement()).then(() => createActivity()).then(() => runSandbox()).then(() => end())
       }
     </script>
   </body>
