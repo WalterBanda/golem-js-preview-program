@@ -1,0 +1,19 @@
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+
+# Nodejs language files
+*.log
+node_modules/
+
+# Packagers
+Dockerfile
+compose.yml
+
+# Project files
+FEEDBACK.md
+.dockerignore
+.gitignore
