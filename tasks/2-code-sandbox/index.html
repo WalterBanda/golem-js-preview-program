@@ -24,7 +24,7 @@
             <fluent-select
                     title="Select a section"
                     class="outline-none min-w-fit"
-                    id="runtime"
+                    onchange="getRuntime(this.value)"
             >
                 <fluent-option value="shell">Shell</fluent-option>
             </fluent-select>
@@ -46,14 +46,14 @@
                 <fluent-select
                         title="Select a section"
                         class="outline-none"
-                        id="node"
+                        onchange="getSandbox(this.value)"
                 >
                     <fluent-option value="shell">vanilla</fluent-option>
                     <fluent-option value="node">node:latest</fluent-option>
                     <fluent-option value="python">python:latest</fluent-option>
                 </fluent-select>
             </div>
-            <fluent-button id="run">Run Code</fluent-button>
+            <fluent-button onclick="runSandbox()">Run Code</fluent-button>
         </div>
         <div class="w-full p-2">
             <fluent-accordion-item
@@ -65,9 +65,7 @@
                 >
                     <div id="output"></div>
                 </div>
-                <fluent-button id="outputBtn">Download Output
-                </fluent-button
-                >
+                <fluent-button onclick="downloadOutput()">Download Output</fluent-button>
             </fluent-accordion-item>
             <fluent-accordion-item
                     class="p-1 rounded-lg border-2 border-slate-100"
@@ -82,6 +80,7 @@
         </div>
     </div>
 </div>
-<script type="module" src="runtime.js"></script>
+<script src="runtime.js"></script>
+<script type="module" src="golem.js"></script>
 </body>
 </html>
