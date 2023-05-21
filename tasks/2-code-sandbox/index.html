@@ -1,86 +1,87 @@
 <!DOCTYPE html>
 <!-- Sample extended from https://docs.golem.network/creators/javascript/mid-level/examples/web/#allocation  -->
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8"/>
     <title>Golem App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script
-      type="module"
-      src="https://unpkg.com/@fluentui/web-components"
+            type="module"
+            src="https://unpkg.com/@fluentui/web-components"
     ></script>
-  </head>
-  <body class="w-screen h-screen grid grid-rows-[auto_1fr] gap-3 p-4">
-    <div class="flex flex-row items-center justify-between">
-      <div>Golem Code Sandbox</div>
-      <fluent-text-field appearance="outline" class="outline-none" placeholder="YAGNA_APP_KEY" id="appid" ></fluent-text-field>
-    </div>
-    <div class="w-full h-full grid grid-cols-[1fr_minmax(20%,auto)] gap-2">
-      <div class="p-1 w-full h-full relative">
+</head>
+<body class="w-screen h-screen grid grid-rows-[auto_1fr] gap-3 p-4">
+<div class="flex flex-row items-center justify-between">
+    <div>Golem Code Sandbox</div>
+    <fluent-text-field appearance="outline" class="outline-none" placeholder="YAGNA_APP_KEY"
+                       id="appid"></fluent-text-field>
+</div>
+<div class="w-full h-full grid grid-cols-[1fr_minmax(20%,auto)] gap-2">
+    <div class="p-1 w-full h-full relative">
         <div
-          class="absolute right-0 p-2 mx-3 my-2 shadow rounded-lg flex flex-row items-center justify-center gap-2"
+                class="absolute right-0 p-2 mx-3 my-2 shadow rounded-lg flex flex-row items-center justify-center gap-2"
         >
-          <fluent-select
-            title="Select a section"
-            class="outline-none min-w-fit"
-            id="runtime"
-            onchange="selectRuntime(this.value)"
-          >
-            <fluent-option value="shell">Shell</fluent-option>
-          </fluent-select>
+            <fluent-select
+                    title="Select a section"
+                    class="outline-none min-w-fit"
+                    id="runtime"
+            >
+                <fluent-option value="shell">Shell</fluent-option>
+            </fluent-select>
         </div>
         <label class="w-full h-full">
           <textarea
-            id="code"
-            class="w-full h-full border-2 border-gray-100 focus:outline-gray-200 outline-none rounded-lg"
+                  id="code"
+                  class="w-full h-full border-2 border-gray-100 focus:outline-gray-200 outline-none rounded-lg"
           ></textarea>
         </label>
-      </div>
-      <div class="flex flex-col items-center justify-between p-1">
+    </div>
+    <div class="flex flex-col items-center justify-between p-1">
         <div class="w-full flex flex-col gap-4">
-          <div class="w-full flex flex-col">
-            <fluent-label class="text-base mb-1"
-              >Choose your Sandbox</fluent-label
-            >
-            <fluent-select
-              title="Select a section"
-              class="outline-none"
-              onchange="selectSandbox(this.value)"
-            >
-              <fluent-option value="shell">vanilla</fluent-option>
-              <fluent-option value="node">node:latest</fluent-option>
-              <fluent-option value="python">python:latest</fluent-option>
-            </fluent-select>
-          </div>
-          <fluent-button id="run">Run Code</fluent-button>
+            <div class="w-full flex flex-col">
+                <fluent-label class="text-base mb-1"
+                >Choose your Sandbox
+                </fluent-label
+                >
+                <fluent-select
+                        title="Select a section"
+                        class="outline-none"
+                        id="node"
+                >
+                    <fluent-option value="shell">vanilla</fluent-option>
+                    <fluent-option value="node">node:latest</fluent-option>
+                    <fluent-option value="python">python:latest</fluent-option>
+                </fluent-select>
+            </div>
+            <fluent-button id="run">Run Code</fluent-button>
         </div>
         <div class="w-full p-2">
-          <fluent-accordion-item
-            class="p-1 rounded-lg border-2 border-slate-100 mb-2"
-          >
-            <span slot="heading">Output</span>
-            <div
-              class="panel w-full min-h-[5rem] p-2 border-2 border-slate-100 mb-2 outline-none"
+            <fluent-accordion-item
+                    class="p-1 rounded-lg border-2 border-slate-100 mb-2"
             >
-              <div id="output"></div>
-            </div>
-            <fluent-button onclick="downloadOutput()"
-              >Download Output</fluent-button
+                <span slot="heading">Output</span>
+                <div
+                        class="panel w-full min-h-[5rem] p-2 border-2 border-slate-100 mb-2 outline-none"
+                >
+                    <div id="output"></div>
+                </div>
+                <fluent-button id="outputBtn">Download Output
+                </fluent-button
+                >
+            </fluent-accordion-item>
+            <fluent-accordion-item
+                    class="p-1 rounded-lg border-2 border-slate-100"
             >
-          </fluent-accordion-item>
-          <fluent-accordion-item
-            class="p-1 rounded-lg border-2 border-slate-100"
-          >
-            <span slot="heading">Logs</span>
-            <div
-              class="panel w-full min-h-[5rem] p-2 border-2 border-slate-100 mb-2 outline-none"
-            >
-              <div id="logs"></div>
-            </div>
-          </fluent-accordion-item>
+                <span slot="heading">Logs</span>
+                <div
+                        class="panel w-full min-h-[5rem] p-2 border-2 border-slate-100 mb-2 outline-none"
+                >
+                    <div id="logs"></div>
+                </div>
+            </fluent-accordion-item>
         </div>
-      </div>
     </div>
-    <script type="module" src="runtime.js"></script>
-  </body>
+</div>
+<script type="module" src="runtime.js"></script>
+</body>
 </html>
